@@ -1,0 +1,22 @@
+CREATE TABLE Roles (
+    RoleID INT PRIMARY KEY,
+    RoleName VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE Users (
+    UserID INT PRIMARY KEY,
+    FullName VARCHAR(100) NOT NULL,
+    Login VARCHAR(50) NOT NULL UNIQUE,
+    PasswordHash VARCHAR(255) NOT NULL,
+    RoleID INT,
+    FOREIGN KEY (RoleID) REFERENCES Roles(RoleID) 
+);
+
+CREATE TABLE Products (
+    SKU VARCHAR(20) PRIMARY KEY,
+    ProductName VARCHAR(100) NOT NULL,
+    Description TEXT,
+    Price DECIMAL(10, 2) NOT NULL,
+    Size INT NOT NULL,
+    StockQuantity INT DEFAULT 0
+);
