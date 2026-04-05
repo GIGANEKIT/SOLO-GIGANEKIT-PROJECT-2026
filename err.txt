@@ -1,0 +1,1 @@
+ls: cannot access '/papk_kotoroy_net': No such file or directory

@@ -1,0 +1,202 @@
+
+ПРАКТИЧЕСКАЯ №6 - Стандартные потоки.
+Котрунов Никита, 11ИС - 393
+
+ЧАСТЬ 1
+1. Команда: esho $$
+   Вывод: 3736
+   Ответ на вопрос: 
+   0 — Стандартный ввод (stdin).
+   1 — Стандартный вывод (stdout).
+   2 — Стандартный поток ошибок (stderr).
+
+2. Команда: ls /proc
+   Вывод: 1     2040  346   48530  512         bus       crypto     dynamic_debug  interrupts  kcore        kpagecount     mdstat   mtrr          schedstat  stat           thread-self  version_signature
+1752  2083  3468  48531  7           cgroups   devices    execdomains    iomem       key-users    kpageflags     meminfo  net           scsi       swaps          timer_list   vmallocinfo
+1831  2535  3507  48534  acpi        cmdline   diskstats  fb             ioports     keys         latency_stats  misc     pagetypeinfo  self       sys            tty          vmstat
+1995  2556  3736  48535  bootconfig  consoles  dma        filesystems    irq         kmsg         loadavg        modules  partitions    slabinfo   sysrq-trigger  uptime       zoneinfo
+2003  262   4450  48537  buddyinfo   cpuinfo   driver     fs             kallsyms    kpagecgroup  locks          mounts   pressure      softirqs   sysvipc        version
+
+   Ответ на вопрос:
+   В Linux это стандарт: первые три дескриптора любого процесса всегда зарезервированы под эти нужды. 
+   Если бы ты ввел команду ls -l fd (с флагом -l), ты бы увидел, что все они указывают на одно и то же 
+   устройство терминала (например, /dev/pts/0), через которое ты сейчас общаешься с системой.
+
+3. Команда: cd /proc/3736
+   Вывод: Переход в папку 3736
+   Ответ на вопрос: 
+   Они нужны для гибкого управления данными. Благодаря разделению на три канала, мы можем:
+   - Получать данные из одного места (клавиатура или файл).
+   - Выводить полезный результат в другое (экран или файл).
+   - Отправлять сообщения об ошибках в третье (лог-файл), чтобы они не перемешивались с основным результатом.
+
+4. Команда: ls
+   Вывод: arch_status  cgroup      coredump_filter     environ  gid_map            latency    maps       mountstats  oom_adj        patch_state  sched      smaps         statm    timens_offsets  wchan
+attr         clear_refs  cpu_resctrl_groups  exe      io                 limits     mem        net         oom_score      personality  schedstat  smaps_rollup  status   timers
+autogroup    cmdline     cpuset              fd       ksm_merging_pages  loginuid   mountinfo  ns          oom_score_adj  projid_map   sessionid  stack         syscall  timerslack_ns
+auxv         comm        cwd                 fdinfo   ksm_stat           map_files  mounts     numa_maps   pagemap        root         setgroups  stat          task     uid_map
+
+5. Команда: ls -f fd
+   Вывод: .  ..  0  1  2  6  28  255
+
+ЧАСТЬ 2
+
+    1.Команда: echo "Мяу."
+    Вывод: Мяу.
+    Ответ на вопрос: Потоки вывода (stdout) и ошибок (stderr) можно разделить, потому что в операционной системе Linux они работают через разные файловые дескрипторы:
+
+    - Дескриптор 1 зарезервирован для стандартного вывода (обычные данные).
+
+    - Дескриптор 2 зарезервирован для стандартного потока ошибок (диагностические сообщения).
+
+    Поскольку это два разных «канала» передачи данных, оболочка (bash) позволяет перенаправлять их независимо друг от друга.
+
+    2. Команда: ls /papk 2> error.log и cat error.log
+    Вывод: ls: cannot access '/papk': No such file or directory (Созранение ошибки в файл, а не вывод в терминал)
+
+    3. Команда: ls / /papk_kotoroy_net > out.txt 2> err.txt -> cat.out.txt -> cat err.txt
+    Вывод: cat out.txt 
+    /:
+    bin
+    bin.usr-is-merged
+    boot
+    dev
+    etc
+    go
+    home
+    lib
+    lib.usr-is-merged
+    lib32
+    lib64
+    media
+    mnt
+    opt
+    proc
+    root
+    run
+    sbin
+    sbin.usr-is-merged
+    srv
+    sys
+    tmp
+    usr
+    var
+    vscode
+    workspaces
+
+    $ cat err.txt
+    ls: cannot access '/papk_kotoroy_net': No such file or directory
+
+ЧАСТЬ 3
+
+    1.Команда: gcc file_demo.c -o file_demo
+    Вывод: Сборка программы
+
+    2.Команда: ./file_demo
+    Вывод: Файл успешно открыт. Дескриптор: 3
+    Данные записаны в myfile.txt. Проверьте файл командой cat.
+
+    3.Команда: cat myfile.txt
+    Вывод: Hello, system programming!
+
+    Ответ на вопрос: Это восьмеричное представление прав доступа в Linux (POSIX). Каждая цифра отвечает за свою группу пользователей:
+    0 — указывает на то, что это восьмеричное число.
+    6 (Владелец) — 4 (чтение) + 2 (запись) = чтение и запись.
+    4 (Группа) — только чтение.
+    4 (Остальные) — только чтение.
+
+ЧАСТЬ 4
+
+    1.Команда: touch FileLib.h 
+    Вывод: Создание файла FileLib.h 
+
+    #ifndef FILELIB_H
+    #define FILELIB_H
+
+    void save_message(const char *filename, const char *message);
+
+    #endif
+    --------------------------------------------------
+    2.Команда: touch FileLib.c
+    Вывод: Создание файла FileLib.c
+
+    #include "FileLib.h"
+    #include <fcntl.h>
+    #include <unistd.h>
+    #include <string.h>
+
+    void save_message(const char *filename, const char *message) {
+    int fd = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
+    
+    if (fd != -1) {
+        write(fd, message, strlen(message));
+        write(fd, "\n", 1); 
+        close(fd);
+        }
+    }
+    --------------------------------------------------
+    3.Команда: touch main.c
+    Вывод: Создание файла main.c
+
+    #include <stdio.h>
+    #include "FileLib.h"
+
+    int main() {
+    printf("Это обычный вывод (stdout)\n");
+
+    fprintf(stderr, "Внимание! Сообщение об ошибке (stderr)\n");
+
+    save_message("log.txt", "Программа успешно запущена");
+    save_message("log.txt", "Библиотека FileLib работает корректно");
+
+    return 0;
+    }
+    --------------------------------------------------
+    4.Команда: gcc main.c FileLib.c -o app
+    Вывод: Сборка приложение 
+    5. Команда: ./app
+    Вывод: Это обычный вывод (stdout)
+    Внимание! Сообщение об ошибке (stderr)
+
+ЧАСТЬ 5
+
+    1.Команда: touch Makefile
+    Вывод: создание Makefile
+
+    app: main.c FileLib.c
+	gcc main.c FileLib.c -o app
+
+    run: app
+	./app
+
+    clean:
+	rm -f app log.txt myfile.txt file_demo error.log
+    --------------------------------------------------
+    2.Команда: make
+    Вывод: make: 'app' is up to date.
+    --------------------------------------------------
+    2.Команда: make run
+    Вывод: 
+    make: ./app
+    Это обычный вывод (stdout)
+    Внимание! Сообщение об ошибке (stderr)
+
+    Ответ на вопрос: 
+    Он нужен для автоматизации сборки проектов, состоящих из множества файлов. 
+    Makefile отслеживает зависимости: если ты изменил только FileLib.c, он пересоберет 
+    только его (в больших проектах это экономит часы времени). Также он избавляет разработчика от 
+    необходимости помнить сложные флаги компиляции.
+
+ЧАСТЬ 6
+
+    1.Команда: ./app > out.txt
+    Вывод: Внимание! Сообщение об ошибке (stderr)
+
+    2.Команда: ./app 2> err.txt
+    Вывод: Это обычный вывод (stdout)
+
+    2.Команда: ./app > all.txt 2>&1
+    Вывод: В консоли будет пусто. И успех, и ошибки запишутся в один файл all.txt.
+
+
+    
